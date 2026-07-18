@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Products from "./Products";
 
 async function fetchProducts() {
@@ -7,52 +7,20 @@ async function fetchProducts() {
   return data;
 }
 
-// step-2
-// action - defines what has happened.
-// reducer - simply update the state basis the action recieved and return new state
-function httpReducer(state, action) {
-  if (action.type === "PENDING") {
-    return {
-      products: [],
-      isLoading: true,
-      error: null,
-    };
-  }
-  if (action.type === "SUCCESS") {
-    return {
-      products: action.payload,
-      isLoading: false,
-      error: null,
-    };
-  }
-  if (action.type === "ERROR") {
-    return {
-      products: [],
-      isLoading: false,
-      error: action.error,
-    };
-  }
-
-  throw new Error("Invalid Action Type"); // if non of the condition matches then throw this error
-}
-
 export default function ProductList() {
-  // step-1 create reducer
-  const [productsState, dispatch] = useReducer(httpReducer, {
-    products: [],
-    isLoading: true,
-    error: null,
-  });
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // step-3 integrate dispatch here
   useEffect(() => {
     async function makeApiCall() {
       try {
-        dispatch({ type: "PENDING" });
         const data = await fetchProducts();
-        dispatch({ type: "SUCCESS", payload: data.products }); // promise will be resolved with data
+        setProducts(data.products); // promise will be resolved with data
+        setIsLoading(false);
       } catch (err) {
-        dispatch({ type: "ERROR", error: err.message });
+        setError(err.message);
+        setIsLoading(true);
       }
     }
     makeApiCall();
@@ -60,9 +28,9 @@ export default function ProductList() {
 
   return (
     <div>
-      {productsState.isLoading && <h4> Loading Products</h4>}
-      {productsState.error && <p> {productsState.error}</p>}
-      {!productsState.error && (
+      {isLoading && <h4> Loading Products</h4>}
+      {error && <p> {error}</p>}
+      {!error && (
         <div
           style={{
             display: "flex",
